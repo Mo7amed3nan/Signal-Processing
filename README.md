@@ -12,7 +12,7 @@ The project not only shows plots and figures, but also **plays real audio** so y
 
 ```
 .
-├── signal.py           # Main Python script
+├── signals.py           # Main Python script
 ├── requirements.txt  # Required Python libraries
 └── figures/          # Plots and results (time & frequency domain)
 ```
