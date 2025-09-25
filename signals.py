@@ -1,0 +1,98 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import sounddevice as sd
+from scipy.fftpack import fft, ifft
+fs = 44100
+t = np.linspace(0, 3, 3 * fs)
+N = 4
+Fi = [164.81, 174.61, 196.00, 220]
+fi = [329.63, 349.23, 392.00, 440]
+ti = [0, 0.7, 1.4, 2.1]
+T  = [0.7, 0.7, 0.7, 0.9]
+# Signal generation
+x = np.zeros_like(t)
+for i in range(N):
+ mask = (t >= ti[i]) & (t < ti[i] + T[i])
+ x[mask] += np.sin(2 * np.pi * Fi[i] * t[mask]) + np.sin(2 * np.pi * fi[i] * t[mask])
+# Time-domain plot (Original)
+plt.figure(figsize=(10, 3))
+plt.plot(t[t<0.05], x[t<0.05])
+plt.title("Original Signal (Time Domain)")
+plt.xlabel("Time [s]")
+plt.ylabel("Amplitude")
+plt.grid()
+plt.tight_layout()
+plt.show()
+#play (Original)
+sd.play(x, fs)
+sd.wait()
+# Frequency-domain plot (Original)
+N1 = 3 * 44100
+f = np.linspace(0, fs/2, int(N1/2))
+x_fft = fft(x)
+x_fft_magnitude = 2/N1 * np.abs(x_fft[0:int(N1/2)])
+plt.figure(figsize=(10, 3))
+plt.plot(f[f<=512], x_fft_magnitude[f<=512]).
+plt.title("Original Signal (Frequency Domain)")
+plt.xlabel("Frequency [Hz]")
+plt.ylabel("Amplitude")
+plt.grid()
+plt.tight_layout()
+plt.show()
+# Add sinusoidal noise
+fn1, fn2 = np.random.randint(0, 512, 2)
+noise = np.sin(2 * np.pi * fn1 * t) + np.sin(2 * np.pi * fn2 * t)
+x_noisy = x + noise
+# Time-domain plot (noisy)
+plt.figure(figsize=(10, 3))
+plt.plot(t[t<0.05], x_noisy[t<0.05])
+plt.title("Noisy Signal (Time Domain)")
+plt.xlabel("Time [s]")
+plt.ylabel("Amplitude")
+plt.grid()
+plt.tight_layout()
+plt.show()
+#play (noisy)
+sd.play(x_noisy, fs)
+sd.wait()
+# Frequency-domain plot (noisy)
+x_noisy_fft = fft(x_noisy)
+x_noisy_fft_magnitude = 2/N1 * np.abs(x_noisy_fft[0:int(N1/2)])
+plt.figure(figsize=(10, 3))
+plt.plot(f[f<=512], x_noisy_fft_magnitude[f<=512])
+plt.title("Noisy Signal (Frequency Domain)")
+plt.xlabel("Frequency [Hz]")
+plt.ylabel("Amplitude")
+plt.grid()
+plt.tight_layout()
+plt.show()
+# Noise Cancellation (top 2 peaks)
+temp_mag = x_noisy_fft_magnitude.copy()
+index_fn1 = np.argmax(temp_mag)
+temp_mag[index_fn1] = 0
+index_fn2 = np.argmax(temp_mag)
+fft_filtered_result = x_noisy_fft.copy()
+fft_filtered_result[[index_fn1, index_fn2, -index_fn1, -index_fn2]] = 0
+filtered_result = np.real(ifft(fft_filtered_result))
+# Time-domain plot (filtered)
+plt.figure(figsize=(10, 3))
+plt.plot(t[t<0.05], filtered_result[t<0.05])
+plt.title("Filtered Signal (Time Domain)")
+plt.xlabel("Time [s]")
+plt.ylabel("Amplitude")
+plt.grid()
+plt.tight_layout()
+plt.show()
+#play (filtered)
+sd.play(filtered_result, fs)
+sd.wait()
+# Frequency-domain plot (filtered)
+fft_filtered_result_magnitudes = 2/N1 * np.abs(fft_filtered_result[0:int(N1/2)])
+plt.figure(figsize=(10, 3))
+plt.plot(f[f<=512], fft_filtered_result_magnitudes[f<=512])
+plt.title("Filtered Signal (Frequency Domain)")
+plt.xlabel("Frequency [Hz]")
+plt.ylabel("Amplitude")
+plt.grid()
+plt.tight_layout()
+plt.show()
